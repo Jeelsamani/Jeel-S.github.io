@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Churn–Expand Tipping Point Predictor — Project 06</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,184,0.05) 0%,transparent 70%)}
+.dashboard{padding:3rem 5vw}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;border-top:2px solid var(--ds)}
+.kpi-label{font-family:var(--font-mono);font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+.kpi-val{font-family:var(--font-serif);font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:0.25rem}
+.kpi-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.account-table-wrap{margin-bottom:1.5rem}
+.action-badge{font-family:var(--font-head);font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.65rem;border-radius:3px;white-space:nowrap}
+.zone-badge{font-family:var(--font-head);font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.65rem;border-radius:3px}
+.zone-tip{background:rgba(240,165,0,0.12);color:var(--amber);border:1px solid rgba(240,165,0,0.25)}
+.zone-churn{background:rgba(232,93,74,0.1);color:#e85d4a;border:1px solid rgba(232,93,74,0.25)}
+.zone-expand{background:rgba(0,212,184,0.1);color:var(--cyan);border:1px solid rgba(0,212,184,0.25)}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><a class="nav-logo" href="index.html"><span>◆</span> YourName</a><a href="index.html" class="nav-back">← Back to Portfolio</a></nav>
+
+<div class="proj-hero">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    <span class="badge badge-ds">Data Scientist · Project 06</span>
+    <div class="proj-tags"><span class="tag">Multi-output ML</span><span class="tag">Decision Boundary</span><span class="tag">Causal Inference</span><span class="tag">LTV Modeling</span><span class="tag">Reinforcement Learning</span></div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem">Churn–Expand<br>Tipping Point Predictor</h1>
+  <p style="font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem">Most churn models predict churn. Most expansion models predict expansion. No one models the <em>space between</em> — accounts equally likely to do either. These are the highest-ROI intervention targets, and this model finds them.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="https://github.com/yourusername/churn-expand-predictor" class="btn btn-cyan">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div><div style="font-family:var(--font-head);font-size:1rem;font-weight:700">Tipping Point Account Intelligence</div><div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem">Multi-output XGBoost + Causal inference · 284 active accounts · 18 features</div></div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Show:</span>
+      <select id="zone-sel" onchange="filterAccounts()">
+        <option value="all">All Accounts</option>
+        <option value="tip">Tipping Zone Only</option>
+        <option value="churn">High Churn Risk</option>
+        <option value="expand">Expansion Likely</option>
+      </select>
+      <span class="filter-label">Sort by:</span>
+      <select id="sort-sel" onchange="filterAccounts()">
+        <option value="ltv">LTV at Risk</option>
+        <option value="tipping">Tipping Score</option>
+        <option value="acv">ACV</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">In Tipping Zone</div><div class="kpi-val" style="color:var(--amber)">47</div><div class="kpi-sub">accounts near decision boundary</div></div>
+    <div class="kpi"><div class="kpi-label">LTV at Stake</div><div class="kpi-val">$4.2M</div><div class="kpi-sub">across tipping zone accounts</div></div>
+    <div class="kpi"><div class="kpi-label">Intervention Success Rate</div><div class="kpi-val">68%</div><div class="kpi-sub">when recommended action taken</div></div>
+    <div class="kpi"><div class="kpi-label">Model Accuracy</div><div class="kpi-val">AUC 0.86</div><div class="kpi-sub">on 90-day churn/expand outcome</div></div>
+  </div>
+
+  <!-- Scatter plot decision boundary -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Churn vs Expansion Probability Space — Decision Boundary Scatter</div>
+    <div class="chart-sub">Each dot is an account. The amber zone = tipping zone (high uncertainty). These are your highest-ROI intervention targets.</div>
+    <canvas id="chart-scatter" height="300"></canvas>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title">Feature Importance for Churn Prediction</div>
+      <div class="chart-sub">Which signals most predict churn in the next 90 days</div>
+      <canvas id="chart-churn-feat" height="230"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Feature Importance for Expansion Prediction</div>
+      <div class="chart-sub">Which signals most predict expansion in the next 90 days</div>
+      <canvas id="chart-exp-feat" height="230"></canvas>
+    </div>
+  </div>
+
+  <!-- Account table -->
+  <div class="chart-wrap account-table-wrap">
+    <div class="chart-title">Tipping Zone Accounts — Recommended Actions</div>
+    <div class="chart-sub">Accounts near the decision boundary, ranked by LTV at stake, with AI-recommended intervention</div>
+    <table class="data-table" style="margin-top:1rem" id="account-table">
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>ACV</th>
+          <th>Churn Prob</th>
+          <th>Expand Prob</th>
+          <th>Zone</th>
+          <th>Tipping Score</th>
+          <th>Recommended Action</th>
+        </tr>
+      </thead>
+      <tbody id="account-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">A multi-output XGBoost model is trained to simultaneously predict two probabilities: P(churn in 90 days) and P(expansion in 90 days). The "tipping zone" is defined as accounts where both probabilities are between 30–70% — the decision boundary.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">Causal inference (doubly-robust estimation) is then used to estimate the effect of different interventions — QBR call, discount offer, new feature demo, CSM outreach — on pushing an account from churn toward expansion.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem">The recommended action per account is the intervention with the highest estimated causal effect on expansion probability, conditioned on the account's specific feature values.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Novel Framework</div><div style="font-size:0.82rem;color:var(--muted)">Treating accounts near the SVM decision boundary as highest-priority — borrowed from active learning in ML, applied to revenue retention for the first time</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Causal Layer</div><div style="font-size:0.82rem;color:var(--muted)">Doubly-robust causal estimators (EconML) estimate intervention effect — moving beyond correlation to actual causal recommendations</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Business ROI</div><div style="font-size:0.82rem;color:var(--muted)">Prioritising tipping-zone accounts generates 2.3× more net revenue retention lift per CS hour than working the highest-churn-risk accounts</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 06 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="project-5-weather.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Prev</a>
+    <a href="index.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--cyan)">← Back to Portfolio</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono',monospace";Chart.defaults.font.size=11;
+function base(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+// Generate scatter data
+function genPts(n,cx,cy,spread,zone){
+  return Array.from({length:n},()=>({x:Math.max(2,Math.min(98,cx+(Math.random()-0.5)*spread*2)),y:Math.max(2,Math.min(98,cy+(Math.random()-0.5)*spread*2)),zone}));
+}
+const churnPts=genPts(60,75,20,18,'churn');
+const expandPts=genPts(60,20,78,18,'expand');
+const tipPts=genPts(47,48,48,18,'tip');
+
+window.addEventListener('load',function(){
+  // Scatter
+  new Chart(document.getElementById('chart-scatter').getContext('2d'),{type:'scatter',data:{datasets:[
+    {label:'Likely to Churn',data:churnPts,backgroundColor:'rgba(232,93,74,0.55)',pointRadius:5,pointHoverRadius:7},
+    {label:'Tipping Zone (high priority)',data:tipPts,backgroundColor:'rgba(240,165,0,0.7)',pointRadius:6,pointHoverRadius:8},
+    {label:'Likely to Expand',data:expandPts,backgroundColor:'rgba(0,212,184,0.55)',pointRadius:5,pointHoverRadius:7}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:12,color:TEXT}},tooltip:{callbacks:{label:c=>`Churn: ${c.parsed.x.toFixed(0)}% | Expand: ${c.parsed.y.toFixed(0)}%`}}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT,callback:v=>v+'%'},title:{display:true,text:'Churn Probability →',color:TEXT},min:0,max:100},y:{grid:{color:MUTED},ticks:{color:TEXT,callback:v=>v+'%'},title:{display:true,text:'Expansion Probability →',color:TEXT},min:0,max:100}}}});
+
+  // Churn features
+  new Chart(document.getElementById('chart-churn-feat').getContext('2d'),{type:'bar',data:{labels:['Login frequency drop','Support ticket volume','Champion departure','NPS score decline','Feature adoption stall','Billing friction'],datasets:[{label:'Importance',data:[0.28,0.22,0.18,0.16,0.11,0.05],backgroundColor:'rgba(232,93,74,0.7)',borderRadius:3}]},options:{...base(),indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{...base().scales.y},x:{...base().scales.x,min:0,max:0.35}}}});
+
+  // Expand features
+  new Chart(document.getElementById('chart-exp-feat').getContext('2d'),{type:'bar',data:{labels:['Power user growth','Multi-dept usage','API call volume','New use case discovery','CSM engagement score','Champion promotion'],datasets:[{label:'Importance',data:[0.31,0.24,0.19,0.14,0.08,0.04],backgroundColor:'rgba(0,212,184,0.65)',borderRadius:3}]},options:{...base(),indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{...base().scales.y},x:{...base().scales.x,min:0,max:0.35}}}});
+
+  renderTable('all');
+});
+
+const accounts=[
+  {name:'Vertex Analytics',acv:'$68K',cp:54,ep:46,zone:'tip',ts:91,action:'QBR Call',acolor:'rgba(0,212,184,0.1)',ac:CYAN},
+  {name:'Momentum HR',acv:'$42K',cp:61,ep:39,zone:'tip',ts:88,action:'Feature Demo',acolor:'rgba(240,165,0,0.1)',ac:AMBER},
+  {name:'Cloudify Inc',acv:'$94K',cp:48,ep:52,zone:'tip',ts:86,action:'Exec Sponsor Call',acolor:'rgba(0,212,184,0.1)',ac:CYAN},
+  {name:'Ridgeline Tech',acv:'$31K',cp:58,ep:42,zone:'tip',ts:82,action:'Success Review',acolor:'rgba(240,165,0,0.1)',ac:AMBER},
+  {name:'Apex Fintech',acv:'$118K',cp:79,ep:21,zone:'churn',ts:20,action:'Emergency Rescue',acolor:'rgba(232,93,74,0.1)',ac:'#e85d4a'},
+  {name:'Luminary Corp',acv:'$55K',cp:82,ep:18,zone:'churn',ts:14,action:'Churn Save Call',acolor:'rgba(232,93,74,0.1)',ac:'#e85d4a'},
+  {name:'Synapse Labs',acv:'$77K',cp:15,ep:85,zone:'expand',ts:15,action:'Upsell Pitch',acolor:'rgba(0,212,184,0.1)',ac:CYAN},
+  {name:'GrowthPath',acv:'$49K',cp:12,ep:88,zone:'expand',ts:12,action:'Expansion QBR',acolor:'rgba(0,212,184,0.1)',ac:CYAN},
+];
+
+function filterAccounts(){
+  const zone=document.getElementById('zone-sel').value;
+  const sort=document.getElementById('sort-sel').value;
+  let list=[...accounts];
+  if(zone==='tip')list=list.filter(a=>a.zone==='tip');
+  else if(zone==='churn')list=list.filter(a=>a.zone==='churn');
+  else if(zone==='expand')list=list.filter(a=>a.zone==='expand');
+  if(sort==='ltv')list.sort((a,b)=>parseInt(b.acv.replace(/\D/g,''))-parseInt(a.acv.replace(/\D/g,'')));
+  else if(sort==='tipping')list.sort((a,b)=>b.ts-a.ts);
+  else if(sort==='acv')list.sort((a,b)=>parseInt(b.acv.replace(/\D/g,''))-parseInt(a.acv.replace(/\D/g,'')));
+  renderTable('custom',list);
+}
+
+function renderTable(type,list){
+  const rows=list||accounts;
+  const zoneLabel={tip:'TIPPING',churn:'HIGH CHURN',expand:'EXPANDING'};
+  document.getElementById('account-tbody').innerHTML=rows.map(a=>`<tr>
+    <td style="font-weight:500;color:var(--text)">${a.name}</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem">${a.acv}</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem;color:${a.cp>60?'#e85d4a':a.cp>40?AMBER:CYAN}">${a.cp}%</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem;color:${a.ep>60?CYAN:a.ep>40?AMBER:'#e85d4a'}">${a.ep}%</td>
+    <td><span class="zone-badge zone-${a.zone}">${zoneLabel[a.zone]}</span></td>
+    <td><div style="display:flex;align-items:center;gap:0.6rem"><div style="flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${a.ts}%;height:100%;background:${a.zone==='tip'?AMBER:a.zone==='churn'?'#e85d4a':CYAN};border-radius:3px"></div></div><span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">${a.ts}</span></div></td>
+    <td><span class="action-badge" style="background:${a.acolor};color:${a.ac};border:1px solid ${a.ac}44">${a.action}</span></td>
+  </tr>`).join('');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTM Motion Attribution Matrix — Project 03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,0.05) 0%,transparent 70%);pointer-events:none}
+.dashboard{padding:3rem 5vw}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;border-top:2px solid var(--da)}
+.kpi-label{font-family:var(--font-mono);font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+.kpi-val{font-family:var(--font-serif);font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:0.25rem}
+.kpi-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.sequence-row{display:flex;align-items:center;gap:0.75rem;padding:1rem 0;border-bottom:1px solid var(--border)}
+.sequence-row:last-child{border-bottom:none}
+.seq-rank{font-family:var(--font-serif);font-size:1.5rem;color:rgba(240,165,0,0.3);font-style:italic;width:2rem;flex-shrink:0;text-align:center}
+.seq-steps{display:flex;align-items:center;gap:0.4rem;flex:1;flex-wrap:wrap}
+.seq-step{font-family:var(--font-mono);font-size:0.72rem;padding:0.3rem 0.75rem;border-radius:20px;border:1px solid var(--border);color:var(--text);background:var(--bg3);white-space:nowrap}
+.seq-arrow{color:var(--muted);font-size:0.7rem}
+.seq-stats{display:flex;flex-direction:column;gap:0.2rem;min-width:120px;text-align:right}
+.seq-wr{font-family:var(--font-head);font-size:1.1rem;font-weight:700;color:var(--cyan)}
+.seq-n{font-family:var(--font-mono);font-size:0.65rem;color:var(--muted)}
+.heatmap-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:0.75rem}
+.hm-cell{padding:0.75rem 0.5rem;border-radius:4px;text-align:center;font-family:var(--font-mono);font-size:0.68rem;line-height:1.3;cursor:default;transition:transform 0.15s}
+.hm-cell:hover{transform:scale(1.05)}
+.hm-label{font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);padding:0.5rem 0.25rem;text-align:center}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-2{grid-template-columns:1fr}.heatmap-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<nav><a class="nav-logo" href="index.html"><span>◆</span> YourName</a><a href="index.html" class="nav-back">← Back to Portfolio</a></nav>
+
+<div class="proj-hero">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    <span class="badge badge-da">Data Analyst · Project 03</span>
+    <div class="proj-tags"><span class="tag">Sequence Pattern Mining</span><span class="tag">Multi-touch Attribution</span><span class="tag">Python</span><span class="tag">Salesforce API</span></div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem">GTM Motion<br>Attribution Matrix</h1>
+  <p style="font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem">Every company tracks which channel generated a lead. Almost no one tracks which <em>sequence</em> of GTM touchpoints — in what order, with what timing — actually closes enterprise deals. This model treats sales touchpoints as ordered sequences, borrowing from NLP, to find the winning "sales plays."</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="https://github.com/yourusername/gtm-attribution-matrix" class="btn btn-amber">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div><div style="font-family:var(--font-head);font-size:1rem;font-weight:700">GTM Attribution Dashboard</div><div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem">612 closed-won deals analysed · 1,847 sequences extracted</div></div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Deal Size:</span>
+      <select id="size-sel" onchange="updateSeqs()">
+        <option value="all">All Sizes</option><option value="smb">SMB &lt;$25K</option><option value="mid">Mid $25–75K</option><option value="ent">Enterprise &gt;$75K</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Avg Touchpoints to Win</div><div class="kpi-val">8.4</div><div class="kpi-sub">vs 14.2 in lost deals</div></div>
+    <div class="kpi"><div class="kpi-label">Top Sequence Win Rate</div><div class="kpi-val">71%</div><div class="kpi-sub">Cold email → LinkedIn → Demo → EC</div></div>
+    <div class="kpi"><div class="kpi-label">Sequence Lift vs Random</div><div class="kpi-val">2.4×</div><div class="kpi-sub">optimised sequence vs avg</div></div>
+    <div class="kpi"><div class="kpi-label">Critical Step</div><div class="kpi-val">EC call</div><div class="kpi-sub">present in 89% of won deals</div></div>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title">Win Rate by First Touch Channel</div>
+      <div class="chart-sub">How the deal started predicts how it ends</div>
+      <canvas id="chart-first" height="210"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Sequence Length Distribution — Won vs Lost</div>
+      <div class="chart-sub">Fewer, higher-quality touches win more often</div>
+      <canvas id="chart-len" height="210"></canvas>
+    </div>
+  </div>
+
+  <!-- Top Sequences -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Top Winning Sequences by Deal Size</div>
+    <div class="chart-sub" id="seq-sub">Ranked by win rate — showing all segments</div>
+    <div id="seq-list" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Touchpoint Transition Effectiveness Heatmap</div>
+    <div class="chart-sub">Win rate lift when touchpoint B follows touchpoint A — darker = stronger signal</div>
+    <div style="margin-top:1.25rem">
+      <div style="display:grid;grid-template-columns:80px repeat(6,1fr);gap:3px;margin-bottom:4px">
+        <div></div>
+        <div class="hm-label">Cold Email</div><div class="hm-label">LinkedIn</div><div class="hm-label">Cold Call</div><div class="hm-label">Demo</div><div class="hm-label">EC Call</div><div class="hm-label">Proposal</div>
+      </div>
+      <div id="heatmap"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Channel Combination Win Rate Matrix</div>
+    <div class="chart-sub">Which combinations of first + last pre-close touchpoint win most</div>
+    <canvas id="chart-combo" height="180"></canvas>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">CRM activity data is extracted for all closed-won and closed-lost deals. Each deal's touchpoint history is encoded as an ordered sequence — e.g., ["cold_email", "linkedin", "demo_booked", "exec_call", "proposal", "won"].</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">Sequential pattern mining (PrefixSpan algorithm) finds the subsequences that appear significantly more often in won deals than lost deals. This is the same algorithm used in clickstream analysis and NLP n-gram extraction.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem">A transition effectiveness matrix is then built, showing which step-to-step transitions produce the highest win rate lift — helping reps know exactly what to do next after each touchpoint.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Algorithm</div><div style="font-size:0.82rem;color:var(--muted)">PrefixSpan sequential pattern mining — O(n) complexity, scales to millions of activity records from Salesforce or HubSpot</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Novel Framing</div><div style="font-size:0.82rem;color:var(--muted)">Treating each deal as a "sentence" of touchpoints — with order and context mattering — rather than counting channel touches independently</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Business Output</div><div style="font-size:0.82rem;color:var(--muted)">A ranked "play book" of winning sequences, a "next best action" transition matrix, and per-segment sequence effectiveness scores</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 03 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="project-2-pricing.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Prev</a>
+    <a href="project-4-dealdna.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--amber)">Next →</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono',monospace";Chart.defaults.font.size=11;
+function base(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+const sequences={
+  all:[
+    {steps:['Cold Email','LinkedIn DM','Demo','EC Intro','Proposal','Negotiation'],wr:71,n:89},
+    {steps:['Inbound Trial','SDR Call','Demo','Champion mtg','EC Call','Close'],wr:68,n:74},
+    {steps:['Event/Webinar','Follow-up Email','Demo','Pilot','EC Call'],wr:64,n:61},
+    {steps:['Cold Call','Demo','Proposal','Legal Review'],wr:48,n:42},
+    {steps:['LinkedIn','Cold Email','Demo','Proposal'],wr:41,n:57},
+  ],
+  smb:[
+    {steps:['Cold Email','Demo','Proposal','Close'],wr:74,n:112},
+    {steps:['Inbound Trial','SDR Call','Demo','Close'],wr:71,n:98},
+    {steps:['LinkedIn','Email','Demo','Proposal'],wr:58,n:76},
+  ],
+  mid:[
+    {steps:['Cold Email','LinkedIn','Demo','Champion','EC Call','Close'],wr:67,n:84},
+    {steps:['Webinar','Follow-up','Demo','Pilot','Proposal'],wr:62,n:68},
+    {steps:['Referral','Discovery','Demo','Proposal','Negotiation'],wr:72,n:41},
+  ],
+  ent:[
+    {steps:['Cold Email','LinkedIn','Multi-thread','Demo','Pilot','EC Sponsor','Legal','Close'],wr:58,n:29},
+    {steps:['Event Meet','Exec Sponsor','BVA','Demo','Legal','Close'],wr:61,n:22},
+    {steps:['Inbound','Discovery','Champion','Demo','BVA','EC Sign-off'],wr:54,n:31},
+  ]
+};
+
+function renderSeqs(key){
+  const seqs=sequences[key]||sequences.all;
+  const subs={all:'all deal sizes',smb:'SMB deals (<$25K)',mid:'mid-market deals ($25–75K)',ent:'enterprise deals (>$75K)'};
+  document.getElementById('seq-sub').textContent='Ranked by win rate — '+subs[key];
+  document.getElementById('seq-list').innerHTML=seqs.map((s,i)=>`<div class="sequence-row">
+    <div class="seq-rank">${i+1}</div>
+    <div class="seq-steps">${s.steps.map((st,j)=>`<span class="seq-step">${st}</span>${j<s.steps.length-1?'<span class="seq-arrow">→</span>':''}`).join('')}</div>
+    <div class="seq-stats"><div class="seq-wr">${s.wr}%</div><div class="seq-n">${s.n} deals</div></div>
+  </div>`).join('');
+}
+
+function updateSeqs(){renderSeqs(document.getElementById('size-sel').value)}
+
+window.addEventListener('load',function(){
+  // First touch
+  new Chart(document.getElementById('chart-first').getContext('2d'),{type:'bar',data:{labels:['Cold Email','Inbound/Trial','LinkedIn','Cold Call','Referral','Event/Webinar'],datasets:[{label:'Win Rate %',data:[34,52,29,22,61,44],backgroundColor:[AMBER,'rgba(0,212,184,0.75)','rgba(150,100,220,0.7)','rgba(232,93,74,0.7)','rgba(100,220,150,0.7)','rgba(100,150,220,0.7)'],borderRadius:4}]},options:{...base(),indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{...base().scales.y},x:{...base().scales.x,ticks:{callback:v=>v+'%',color:TEXT}}}}});
+
+  // Length distribution
+  const labels=['3-4','5-6','7-8','9-10','11-12','13+'];
+  new Chart(document.getElementById('chart-len').getContext('2d'),{type:'bar',data:{labels,datasets:[
+    {label:'Won Deals',data:[8,22,35,24,8,3],backgroundColor:'rgba(0,212,184,0.65)',borderRadius:3},
+    {label:'Lost Deals',data:[3,10,18,28,24,17],backgroundColor:'rgba(232,93,74,0.55)',borderRadius:3}
+  ]},options:{...base()}});
+
+  // Heatmap
+  const steps=['Cold Email','LinkedIn','Cold Call','Demo','EC Call','Proposal'];
+  const hmData=[
+    [0,78,42,85,70,60],[55,0,38,82,74,65],[30,44,0,71,68,58],
+    [20,30,25,0,88,92],[15,22,18,45,0,87],[10,15,12,28,60,0]
+  ];
+  const hmEl=document.getElementById('heatmap');
+  hmEl.innerHTML=steps.map((row,i)=>`
+    <div style="display:grid;grid-template-columns:80px repeat(6,1fr);gap:3px;margin-bottom:3px">
+      <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);display:flex;align-items:center;padding:0 0.5rem;text-align:right">${row}</div>
+      ${hmData[i].map((v,j)=>i===j?`<div class="hm-cell" style="background:var(--bg3);color:var(--muted)">—</div>`:`<div class="hm-cell" style="background:rgba(240,165,0,${v/100*0.8});color:${v>60?'#07090f':'rgba(232,230,224,0.8)'}">${v}%</div>`).join('')}
+    </div>
+  `).join('');
+
+  // Combo chart
+  new Chart(document.getElementById('chart-combo').getContext('2d'),{type:'bar',data:{labels:['Email+Demo','Email+EC Call','LinkedIn+Demo','Inbound+Trial','Cold Call+Demo','Event+Demo'],datasets:[{label:'Win Rate %',data:[58,71,52,66,38,62],backgroundColor:'rgba(0,212,184,0.7)',borderRadius:3}]},options:{...base(),plugins:{legend:{display:false}},scales:{x:{...base().scales.x},y:{...base().scales.y,ticks:{callback:v=>v+'%',color:TEXT}}}}});
+
+  renderSeqs('all');
+});
+</script>
+</body>
+</html>

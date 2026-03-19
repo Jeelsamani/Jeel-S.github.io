@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Weather Forecasting System — Project 05</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,184,0.05) 0%,transparent 70%)}
+.dashboard{padding:3rem 5vw}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;border-top:2px solid var(--ds)}
+.kpi-label{font-family:var(--font-mono);font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+.kpi-val{font-family:var(--font-serif);font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:0.25rem}
+.kpi-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.weather-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.weather-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;position:relative;overflow:hidden}
+.wc-region{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.25rem}
+.wc-rep{font-family:var(--font-head);font-size:0.9rem;font-weight:700;margin-bottom:0.75rem}
+.wc-icon{position:absolute;top:1rem;right:1rem;font-size:2rem;opacity:0.4}
+.wc-forecast{font-family:var(--font-serif);font-size:1.75rem;line-height:1;margin-bottom:0.25rem}
+.wc-range{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-bottom:0.75rem}
+.wc-status{font-family:var(--font-head);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.65rem;border-radius:3px}
+.alert-list{display:flex;flex-direction:column;gap:0.75rem}
+.alert-item{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem}
+.alert-icon{font-size:1.1rem;margin-top:0.15rem}
+.alert-title{font-family:var(--font-head);font-size:0.82rem;font-weight:700;margin-bottom:0.2rem}
+.alert-desc{font-size:0.8rem;color:rgba(232,230,224,0.6);line-height:1.6}
+.alert-meta{font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);margin-top:0.35rem}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><a class="nav-logo" href="index.html"><span>◆</span> YourName</a><a href="index.html" class="nav-back">← Back to Portfolio</a></nav>
+
+<div class="proj-hero">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    <span class="badge badge-ds">Data Scientist · Project 05</span>
+    <div class="proj-tags"><span class="tag">LSTM</span><span class="tag">Monte Carlo</span><span class="tag">Ensemble Models</span><span class="tag">Uncertainty Quantification</span><span class="tag">XGBoost</span></div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem">Revenue Weather<br>Forecasting System</h1>
+  <p style="font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem">Sales forecasting is broken because it gives a single number. Weather forecasters don't say "it will rain exactly 4mm" — they give probability distributions, confidence cones, and storm warnings. This system does the same for revenue.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="https://github.com/yourusername/revenue-weather-forecast" class="btn btn-cyan">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div><div style="font-family:var(--font-head);font-size:1rem;font-weight:700">Revenue Forecast — Q2 2025</div><div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem">Ensemble: XGBoost + LSTM + 10,000 Monte Carlo simulations · Updated daily</div></div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Confidence:</span>
+      <select id="conf-sel" onchange="updateForecast()">
+        <option value="80">80% interval</option><option value="90">90% interval</option><option value="95">95% interval</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Base Forecast</div><div class="kpi-val">$2.84M</div><div class="kpi-sub">Most likely outcome</div></div>
+    <div class="kpi"><div class="kpi-label">80% Confidence Range</div><div class="kpi-val" id="kpi-range">$2.1–3.6M</div><div class="kpi-sub">Probability cone</div></div>
+    <div class="kpi"><div class="kpi-label">Upside Scenario</div><div class="kpi-val">$4.1M</div><div class="kpi-sub">P90 outcome (lucky quarter)</div></div>
+    <div class="kpi"><div class="kpi-label">Storm Risk</div><div class="kpi-val" style="color:#e85d4a">3 deals</div><div class="kpi-sub">At-risk of unexpected loss</div></div>
+  </div>
+
+  <!-- Forecast cone -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Revenue Forecast Probability Cone — Q2 2025</div>
+    <div class="chart-sub" id="cone-sub">80% confidence interval · shaded band shows the range of likely outcomes</div>
+    <canvas id="chart-cone" height="220"></canvas>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title">Monte Carlo Outcome Distribution</div>
+      <div class="chart-sub">10,000 simulated quarters — revenue probability density</div>
+      <canvas id="chart-mc" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Model Ensemble Weights</div>
+      <div class="chart-sub">How much each model contributes to the final forecast</div>
+      <canvas id="chart-ensemble" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Weather map -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Territory Weather Map</div>
+    <div class="chart-sub">Each rep's pipeline forecast — sunny, cloudy, or stormy</div>
+    <div class="weather-map" style="margin-top:1.25rem" id="weather-map"></div>
+  </div>
+
+  <!-- Storm alerts -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title" style="color:#e85d4a">⚡ Storm Warnings — At-Risk Deals</div>
+    <div class="chart-sub">Deals flagged by anomaly detection as having unexpected risk trajectory</div>
+    <div class="alert-list" id="alert-list" style="margin-top:1.25rem"></div>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">Three models are stacked: XGBoost predicts close probability for each deal; LSTM models the time-series patterns in pipeline coverage and deal progression; Monte Carlo simulations run 10,000 scenarios by sampling from the joint probability distribution of all open deals.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem">Storm warnings are generated by an anomaly detection layer (Isolation Forest) that flags deals whose behavioral signals deviate significantly from their recent trajectory — the revenue equivalent of a sudden pressure drop before a storm.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Ensemble Stack</div><div style="font-size:0.82rem;color:var(--muted)">XGBoost (45%) + LSTM (35%) + Linear baseline (20%) — weights determined by out-of-sample RMSE on 6 historical quarters</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Uncertainty</div><div style="font-size:0.82rem;color:var(--muted)">Conformal prediction intervals provide statistically valid coverage guarantees — not just "best guess ± something"</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Meteorology Analogy</div><div style="font-size:0.82rem;color:var(--muted)">The probability cone is literally borrowed from NOAA hurricane track forecasting. The widening bands communicate growing uncertainty over time — something no CRM dashboard does.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 05 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="project-4-dealdna.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Prev</a>
+    <a href="project-6-churn.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--cyan)">Next →</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono',monospace";Chart.defaults.font.size=11;
+function base(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+let coneChart=null;
+
+const weeks=['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8','Wk9','Wk10','Wk11','Wk12','EOQ'];
+const base_f=[1.1,1.2,1.35,1.5,1.65,1.8,2.0,2.15,2.3,2.5,2.65,2.75,2.84];
+const intervals={80:{lo:[1.1,1.15,1.25,1.38,1.48,1.6,1.75,1.85,1.95,2.1,2.2,2.3,2.1],hi:[1.1,1.25,1.48,1.65,1.85,2.05,2.3,2.5,2.7,2.95,3.15,3.25,3.6]},
+90:{lo:[1.1,1.12,1.18,1.28,1.38,1.5,1.62,1.72,1.82,1.95,2.05,2.15,1.85],hi:[1.1,1.28,1.55,1.75,1.95,2.18,2.45,2.68,2.92,3.2,3.42,3.55,3.9]},
+95:{lo:[1.1,1.08,1.12,1.2,1.28,1.38,1.5,1.58,1.68,1.8,1.9,2.0,1.65],hi:[1.1,1.32,1.62,1.85,2.08,2.35,2.62,2.88,3.15,3.45,3.7,3.82,4.2]}};
+
+function buildCone(conf){
+  const intv=intervals[conf];
+  const data={labels:weeks,datasets:[
+    {label:'Forecast (base)',data:base_f,borderColor:CYAN,borderWidth:2.5,pointRadius:3,tension:0.4,fill:false,order:1},
+    {label:'Upper bound',data:intv.hi,borderColor:'rgba(0,212,184,0.25)',borderWidth:1,pointRadius:0,tension:0.4,fill:'+1',backgroundColor:'rgba(0,212,184,0.07)',order:2},
+    {label:'Lower bound',data:intv.lo,borderColor:'rgba(0,212,184,0.25)',borderWidth:1,pointRadius:0,tension:0.4,fill:false,order:3}
+  ]};
+  if(coneChart)coneChart.destroy();
+  coneChart=new Chart(document.getElementById('chart-cone').getContext('2d'),{type:'line',data,options:{...base(),plugins:{...base().plugins},scales:{x:{...base().scales.x},y:{...base().scales.y,ticks:{callback:v=>'$'+v.toFixed(1)+'M',color:TEXT}}}}});
+}
+
+function updateForecast(){
+  const conf=document.getElementById('conf-sel').value;
+  const intv=intervals[conf];
+  document.getElementById('kpi-range').textContent='$'+intv.lo[12].toFixed(1)+'–$'+intv.hi[12].toFixed(1)+'M';
+  document.getElementById('cone-sub').textContent=conf+'% confidence interval · shaded band shows the range of likely outcomes';
+  buildCone(conf);
+}
+
+const reps=[
+  {name:'Aditya Sharma',region:'West India',icon:'☀️',forecast:'$680K',range:'$540K–840K',status:'SUNNY',scolor:'rgba(0,212,184,0.15)',sc:CYAN},
+  {name:'Priya Menon',region:'South India',icon:'⛅',forecast:'$510K',range:'$380K–660K',status:'PARTLY CLOUDY',scolor:'rgba(240,165,0,0.12)',sc:AMBER},
+  {name:'Rahul Desai',region:'North India',icon:'🌧️',forecast:'$290K',range:'$180K–420K',status:'STORMY',scolor:'rgba(232,93,74,0.1)',sc:'#e85d4a'},
+  {name:'Sneha Patel',region:'East India',icon:'☀️',forecast:'$740K',range:'$610K–890K',status:'SUNNY',scolor:'rgba(0,212,184,0.15)',sc:CYAN},
+  {name:'Vikram Nair',region:'Global / Remote',icon:'⛅',forecast:'$620K',range:'$470K–780K',status:'PARTLY CLOUDY',scolor:'rgba(240,165,0,0.12)',sc:AMBER},
+];
+
+document.getElementById('weather-map').innerHTML=reps.map(r=>`
+  <div class="weather-card" style="border-color:${r.sc}33">
+    <div class="wc-region">${r.region}</div>
+    <div class="wc-rep">${r.name}</div>
+    <div class="wc-icon">${r.icon}</div>
+    <div class="wc-forecast" style="color:${r.sc}">${r.forecast}</div>
+    <div class="wc-range">${r.range} (80% CI)</div>
+    <span class="wc-status" style="background:${r.scolor};color:${r.sc}">${r.status}</span>
+  </div>
+`).join('');
+
+const alerts=[
+  {icon:'⚡',title:'DataVault Inc — Sudden Champion Disengagement',desc:'Champion email response time increased 4× in the last 10 days. Stakeholder engagement dropped 38%. Pattern matches 74% of deals that slipped in historical data.',meta:'$122K · Enterprise · Stage: Negotiation · Alert triggered 2 days ago'},
+  {icon:'🌪️',title:'Orbital SaaS — Stalled Stage Transition',desc:'Deal has been in "Proposal Sent" stage for 34 days vs 12-day benchmark. No exec-level contact in 18 days. Monte Carlo models show 31% slip probability to next quarter.',meta:'$61K · Mid-Market · Stage: Proposal Sent · Alert triggered 5 days ago'},
+  {icon:'⛈️',title:'TechFlow Ltd — Competitor Re-engagement Signal',desc:'Two champion contacts viewed competitor content (detected via LinkedIn activity correlation). Pricing objection language appeared in last 2 email replies.',meta:'$46K · Mid-Market · Stage: Proposal Sent · Alert triggered 1 day ago'},
+];
+
+document.getElementById('alert-list').innerHTML=alerts.map(a=>`
+  <div class="alert-item" style="border-color:rgba(232,93,74,0.3)">
+    <div class="alert-icon">${a.icon}</div>
+    <div><div class="alert-title" style="color:#e85d4a">${a.title}</div><div class="alert-desc">${a.desc}</div><div class="alert-meta">${a.meta}</div></div>
+  </div>
+`).join('');
+
+window.addEventListener('load',function(){
+  buildCone(80);
+
+  // Monte Carlo histogram
+  const bins=['<$1.5M','$1.5–2M','$2–2.5M','$2.5–3M','$3–3.5M','$3.5–4M','>$4M'];
+  new Chart(document.getElementById('chart-mc').getContext('2d'),{type:'bar',data:{labels:bins,datasets:[{label:'Simulated Outcomes',data:[320,1240,2810,3190,1680,580,180],backgroundColor:function(ctx){const idx=ctx.dataIndex;return idx===3?CYAN:idx===2||idx===4?AMBER:'rgba(150,150,150,0.4)'},borderRadius:3}]},options:{...base(),plugins:{legend:{display:false}},scales:{x:{...base().scales.x},y:{...base().scales.y,title:{display:true,text:'# of simulations',color:TEXT}}}}});
+
+  // Ensemble
+  new Chart(document.getElementById('chart-ensemble').getContext('2d'),{type:'doughnut',data:{labels:['XGBoost (deal score)','LSTM (time series)','Linear baseline'],datasets:[{data:[45,35,20],backgroundColor:[CYAN,AMBER,'rgba(150,100,220,0.7)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}}}}});
+});
+</script>
+</body>
+</html>

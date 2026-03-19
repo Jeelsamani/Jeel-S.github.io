@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — Data Analyst & Data Scientist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:9rem 5vw 5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-100px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,0.06) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-100px;left:30%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,184,0.05) 0%,transparent 70%);pointer-events:none}
+.hero-tag{font-family:var(--font-mono);font-size:0.73rem;color:var(--amber);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem}
+.hero-tag::before{content:'';display:inline-block;width:2rem;height:1px;background:var(--amber)}
+.hero-name{font-family:var(--font-serif);font-size:clamp(3.5rem,8vw,7rem);line-height:1.0;letter-spacing:-0.02em;margin-bottom:0.5rem}
+.hero-name em{font-style:italic;color:var(--amber)}
+.hero-role{font-family:var(--font-head);font-size:clamp(1rem,2.5vw,1.3rem);font-weight:600;letter-spacing:0.05em;color:var(--muted);margin-bottom:2.5rem}
+.hero-role span{color:var(--cyan)}
+.hero-desc{max-width:560px;font-size:1.05rem;color:rgba(232,230,224,0.65);line-height:1.8;margin-bottom:3rem}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+.hero-stats{display:flex;gap:3rem;margin-top:4rem;flex-wrap:wrap}
+.hero-stat-num{font-family:var(--font-serif);font-size:2.5rem;color:var(--text);line-height:1}
+.hero-stat-num em{font-style:normal;color:var(--amber)}
+.hero-stat-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.about-text p{color:rgba(232,230,224,0.68);margin-bottom:1.25rem;font-size:1rem}
+.about-text strong{color:var(--amber);font-style:italic;font-weight:normal}
+.skills-block{margin-bottom:1.5rem}
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.75rem}
+.skill-pill{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:0.55rem 0.9rem;font-family:var(--font-mono);font-size:0.75rem;color:var(--muted);transition:all 0.2s}
+.skill-pill:hover{border-color:var(--border-s);color:var(--text)}
+.skill-pill.da{border-left:3px solid var(--da)}
+.skill-pill.ds{border-left:3px solid var(--ds)}
+
+/* PROCESS */
+.process-band{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0}
+.process-steps{display:grid;grid-template-columns:repeat(4,1fr)}
+.process-step{padding:2.5rem 2rem;border-right:1px solid var(--border)}
+.process-step:last-child{border-right:none}
+.step-num{font-family:var(--font-serif);font-size:3rem;color:rgba(240,165,0,0.12);line-height:1;margin-bottom:0.75rem;font-style:italic}
+.step-title{font-family:var(--font-head);font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.4rem}
+.step-desc{font-size:0.8rem;color:var(--muted);line-height:1.65}
+
+/* PROJECT TYPE DIVIDER */
+.type-div{display:flex;align-items:center;gap:1.25rem;margin-bottom:2.5rem}
+.type-div-line{flex:1;height:1px;background:var(--border)}
+.type-div-desc{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted)}
+
+/* PROJECT CARDS */
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem;margin-bottom:4rem}
+.proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:2rem;position:relative;overflow:hidden;transition:border-color 0.3s,transform 0.3s;display:flex;flex-direction:column}
+.proj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.proj-card.da::before{background:var(--da)}
+.proj-card.ds::before{background:var(--ds)}
+.proj-card:hover{border-color:var(--border-s);transform:translateY(-4px)}
+.proj-num{font-family:var(--font-mono);font-size:0.63rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:1.1rem}
+.proj-num .da-c{color:var(--da)}
+.proj-num .ds-c{color:var(--ds)}
+.proj-icon{font-size:1.75rem;margin-bottom:0.9rem;display:block}
+.proj-title{font-family:var(--font-head);font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:0.2rem;line-height:1.3}
+.proj-line{font-family:var(--font-mono);font-size:0.7rem;margin-bottom:0.9rem;letter-spacing:0.04em}
+.proj-line.da-c{color:var(--da)}
+.proj-line.ds-c{color:var(--ds)}
+.proj-desc{font-size:0.86rem;line-height:1.75;color:rgba(232,230,224,0.58);margin-bottom:1.25rem;flex:1}
+.proj-unique{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:4px;padding:0.8rem 1rem;margin-bottom:1.25rem}
+.proj-unique-label{font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem}
+.proj-unique-text{font-size:0.8rem;color:rgba(232,230,224,0.7);line-height:1.6}
+.proj-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem}
+.proj-tags{display:flex;flex-wrap:wrap;gap:0.4rem}
+.proj-live-btn{font-family:var(--font-head);font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.45rem 1.1rem;border-radius:4px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.proj-live-btn.da-btn{background:var(--amber-dim);color:var(--da);border:1px solid rgba(240,165,0,0.3)}
+.proj-live-btn.da-btn:hover{background:var(--da);color:#07090f}
+.proj-live-btn.ds-btn{background:var(--cyan-dim);color:var(--ds);border:1px solid rgba(0,212,184,0.3)}
+.proj-live-btn.ds-btn:hover{background:var(--ds);color:#07090f}
+.bg-num{position:absolute;bottom:-1rem;right:1rem;font-family:var(--font-serif);font-size:8rem;color:rgba(255,255,255,0.018);line-height:1;pointer-events:none;font-style:italic}
+
+/* TOOLS */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:1rem}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1rem;text-align:center;transition:border-color 0.2s}
+.tool-card:hover{border-color:rgba(240,165,0,0.3)}
+.tool-icon{font-size:1.4rem;display:block;margin-bottom:0.4rem}
+.tool-name{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.contact-available{font-family:var(--font-mono);font-size:0.72rem;color:var(--cyan);display:flex;align-items:center;gap:0.5rem;margin-bottom:1.75rem}
+.dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+.contact-text p{color:rgba(232,230,224,0.6);font-size:0.95rem;margin-bottom:1rem}
+.contact-links{display:flex;flex-direction:column;gap:0.65rem;margin-top:1.75rem}
+.contact-link{display:flex;align-items:center;gap:0.9rem;padding:0.9rem 1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:6px;font-family:var(--font-head);font-size:0.8rem;font-weight:600;letter-spacing:0.05em;transition:all 0.2s}
+.contact-link:hover{border-color:var(--amber);color:var(--amber)}
+.contact-form{display:flex;flex-direction:column;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+.form-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+.form-input{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:0.75rem 1rem;color:var(--text);font-family:var(--font-body);font-size:0.9rem;outline:none;transition:border-color 0.2s;width:100%}
+.form-input:focus{border-color:rgba(240,165,0,0.5)}
+textarea.form-input{resize:vertical;min-height:110px}
+.form-submit{background:var(--amber);color:#07090f;border:2px solid var(--amber);border-radius:4px;padding:0.8rem 1.75rem;font-family:var(--font-head);font-size:0.78rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;align-self:flex-start}
+.form-submit:hover{background:transparent;color:var(--amber)}
+
+@media(max-width:768px){.about-grid,.contact-grid{grid-template-columns:1fr}.process-steps{grid-template-columns:1fr 1fr}.process-step{border-right:none;border-bottom:1px solid var(--border)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html"><span>◆</span> YourName</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#tools">Stack</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag fu d1">Data Analyst · Data Scientist · SaaS Revenue Intelligence</div>
+  <h1 class="hero-name fu d2">Where <em>Sales</em><br>Meets Science</h1>
+  <p class="hero-role fu d3">Business Executive turned <span>Revenue Data Scientist</span></p>
+  <p class="hero-desc fu d4">I build data systems that no one has thought to build yet — because I've lived on the sales floor. Combining deep SaaS business experience with advanced ML/AI to uncover insights that traditional analysts miss entirely.</p>
+  <div class="hero-btns fu d5">
+    <a href="#projects" class="btn btn-amber">View Live Projects</a>
+    <a href="#contact" class="btn btn-outline">Get In Touch</a>
+  </div>
+  <div class="hero-stats fu d5">
+    <div><div class="hero-stat-num">6<em>+</em></div><div class="hero-stat-label">Original Projects</div></div>
+    <div><div class="hero-stat-num">2<em>x</em></div><div class="hero-stat-label">DA + DS</div></div>
+    <div><div class="hero-stat-num">0<em>%</em></div><div class="hero-stat-label">Generic Templates</div></div>
+  </div>
+</section>
+
+<div class="h-divider"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-tag">Who I Am</div>
+  <h2 class="section-title">Sales Intelligence<br>as a Science</h2>
+  <p class="section-sub">Not just a data person. A business executive who decided to speak the language of machines.</p>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>I started my career on the front lines of <strong>SaaS sales</strong> — hitting quota, managing territories, and watching deals slip through cracks no one could explain. The data was there. The models weren't. So I built them.</p>
+      <p>My work lives at the intersection of <strong>real business intuition</strong> and machine learning rigor. I don't just run models — I ask questions that salespeople actually need answered. Why did that deal die at stage 4? Which accounts are 90 days from churning? What's the true probability we close this quarter?</p>
+      <p>Every project I've built solves a problem I've personally felt. That's what makes them <strong>different from anything else you'll find.</strong></p>
+    </div>
+    <div>
+      <div class="skills-block">
+        <div class="section-tag" style="margin-bottom:0.5rem">Data Analyst Stack</div>
+        <div class="skills-grid">
+          <div class="skill-pill da">Python · Pandas</div>
+          <div class="skill-pill da">SQL · BigQuery</div>
+          <div class="skill-pill da">Tableau · Power BI</div>
+          <div class="skill-pill da">Excel · DAX</div>
+          <div class="skill-pill da">A/B Testing</div>
+          <div class="skill-pill da">Cohort Analysis</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-tag" style="margin-bottom:0.5rem">Data Scientist Stack</div>
+        <div class="skills-grid">
+          <div class="skill-pill ds">Scikit-learn · XGBoost</div>
+          <div class="skill-pill ds">TensorFlow · PyTorch</div>
+          <div class="skill-pill ds">LSTM · Time Series</div>
+          <div class="skill-pill ds">Monte Carlo Sim</div>
+          <div class="skill-pill ds">NLP · Transformers</div>
+          <div class="skill-pill ds">MLflow · Airflow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="process-band">
+  <div class="process-steps">
+    <div class="process-step"><div class="step-num">01</div><div class="step-title">Business Problem First</div><div class="step-desc">Every project starts with a question a sales leader actually cares about.</div></div>
+    <div class="process-step"><div class="step-num">02</div><div class="step-title">Data Archaeology</div><div class="step-desc">Finding hidden signals in CRM, product, and financial data.</div></div>
+    <div class="process-step"><div class="step-num">03</div><div class="step-title">Model & Validate</div><div class="step-desc">Rigorous ML/statistical models with honest evaluation and benchmarks.</div></div>
+    <div class="process-step"><div class="step-num">04</div><div class="step-title">Actionable Output</div><div class="step-desc">Insights a sales rep can act on tomorrow, not just charts in a deck.</div></div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-tag">Portfolio</div>
+  <h2 class="section-title">Projects Nobody<br>Has Built Yet</h2>
+  <p class="section-sub">Six original projects built from real SaaS sales experience — each with live interactive dashboards, synthetic datasets, and downloadable code.</p>
+
+  <div class="type-div">
+    <div class="badge badge-da">Data Analyst</div>
+    <div class="type-div-line"></div>
+    <div class="type-div-desc">Analysis · Dashboards · Business Intelligence</div>
+  </div>
+
+  <div class="projects-grid">
+    <div class="proj-card da">
+      <div class="bg-num">1</div>
+      <div class="proj-num"><span class="da-c">DA</span> · PROJECT 01</div>
+      <span class="proj-icon">⚙️</span>
+      <h3 class="proj-title">Sales Velocity Autopsy System</h3>
+      <div class="proj-line da-c">Decomposing the hidden physics of revenue loss</div>
+      <p class="proj-desc">Multi-dimensional decomposition engine that breaks the sales velocity formula into per-rep, per-segment micro-components — pinpointing the exact root cause and dollar value of every revenue shortfall.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">Identifies <em>which stage, which rep archetype,</em> and <em>which deal size</em> caused a velocity decline — and calculates the exact dollar cost of each micro-failure.</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">Python</span><span class="tag">SQL</span><span class="tag">Tableau</span></div>
+        <a href="project-1-velocity.html" class="proj-live-btn da-btn">▶ Live Demo</a>
+      </div>
+    </div>
+
+    <div class="proj-card da">
+      <div class="bg-num">2</div>
+      <div class="proj-num"><span class="da-c">DA</span> · PROJECT 02</div>
+      <span class="proj-icon">🔍</span>
+      <h3 class="proj-title">Lost Deal Pricing Signal Intelligence</h3>
+      <div class="proj-line da-c">Mining the graveyard of dead deals for pricing truth</div>
+      <p class="proj-desc">Reverse-engineers pricing elasticity by applying NLP to CRM notes and call transcripts — extracting pricing objections that have never been systematically analyzed in any SaaS pricing study.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">Uses text mining on unstructured CRM data to reveal which price points actually kill deals, broken down by segment, industry, and company size.</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">NLP</span><span class="tag">Regression</span><span class="tag">Power BI</span></div>
+        <a href="project-2-pricing.html" class="proj-live-btn da-btn">▶ Live Demo</a>
+      </div>
+    </div>
+
+    <div class="proj-card da">
+      <div class="bg-num">3</div>
+      <div class="proj-num"><span class="da-c">DA</span> · PROJECT 03</div>
+      <span class="proj-icon">🗺️</span>
+      <h3 class="proj-title">GTM Motion Attribution Matrix</h3>
+      <div class="proj-line da-c">Which exact sequence of touchpoints closes enterprise deals</div>
+      <p class="proj-desc">Treats sales touchpoints as ordered sequences — borrowing from computational linguistics — to find which GTM "sentences" predict closed-won across deal sizes, verticals, and rep types.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">Sequence pattern mining applied to sales for the first time — finds which exact order and timing of touchpoints wins enterprise deals.</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">Sequence Mining</span><span class="tag">Sankey</span><span class="tag">Python</span></div>
+        <a href="project-3-gtm.html" class="proj-live-btn da-btn">▶ Live Demo</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="type-div">
+    <div class="badge badge-ds">Data Scientist</div>
+    <div class="type-div-line"></div>
+    <div class="type-div-desc">ML · AI · Predictive Modeling · Forecasting</div>
+  </div>
+
+  <div class="projects-grid">
+    <div class="proj-card ds">
+      <div class="bg-num">4</div>
+      <div class="proj-num"><span class="ds-c">DS</span> · PROJECT 04</div>
+      <span class="proj-icon">🧬</span>
+      <h3 class="proj-title">Deal DNA Fingerprinting Engine</h3>
+      <div class="proj-line ds-c">ML that reads the genetic code of a winning deal</div>
+      <p class="proj-desc">Extracts 40+ temporal behavioral signals — email response latency, stage velocity, stakeholder engagement drift — to create a unique Deal DNA Fingerprint for real-time opportunity scoring.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">No existing sales AI uses temporal behavioral signals as features. This treats a deal like a living organism with a health trajectory, not a static record.</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">XGBoost</span><span class="tag">SHAP</span><span class="tag">Real-time</span></div>
+        <a href="project-4-dealdna.html" class="proj-live-btn ds-btn">▶ Live Demo</a>
+      </div>
+    </div>
+
+    <div class="proj-card ds">
+      <div class="bg-num">5</div>
+      <div class="proj-num"><span class="ds-c">DS</span> · PROJECT 05</div>
+      <span class="proj-icon">🌦️</span>
+      <h3 class="proj-title">Revenue Weather Forecasting System</h3>
+      <div class="proj-line ds-c">Treating quarterly revenue like a meteorological system</div>
+      <p class="proj-desc">Ensemble forecasting (XGBoost + LSTM + Monte Carlo) that produces probability distributions, confidence cones, and storm warnings for at-risk deals — not a single fragile number.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">Architecture borrows from numerical weather prediction: ensemble runs, uncertainty quantification, and anomaly detection for revenue "storm systems."</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">LSTM</span><span class="tag">Monte Carlo</span><span class="tag">Ensemble</span></div>
+        <a href="project-5-weather.html" class="proj-live-btn ds-btn">▶ Live Demo</a>
+      </div>
+    </div>
+
+    <div class="proj-card ds">
+      <div class="bg-num">6</div>
+      <div class="proj-num"><span class="ds-c">DS</span> · PROJECT 06</div>
+      <span class="proj-icon">⚖️</span>
+      <h3 class="proj-title">Churn–Expand Tipping Point Predictor</h3>
+      <div class="proj-line ds-c">Finding the accounts that could go either way</div>
+      <p class="proj-desc">Dual-output ML model that predicts churn and expansion probability simultaneously, identifies accounts in the "tipping zone," and recommends the optimal intervention action.</p>
+      <div class="proj-unique"><div class="proj-unique-label">🔬 Novel Insight</div><div class="proj-unique-text">Borrowed from SVM decision boundary theory — the highest-ROI accounts aren't most likely to churn, they're the ones near the decision boundary.</div></div>
+      <div class="proj-footer">
+        <div class="proj-tags"><span class="tag">Multi-output ML</span><span class="tag">Causal AI</span><span class="tag">LTV</span></div>
+        <a href="project-6-churn.html" class="proj-live-btn ds-btn">▶ Live Demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-divider"></div>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="section-tag">Technical Stack</div>
+  <h2 class="section-title">Tools & Technologies</h2>
+  <p class="section-sub">Every tool chosen because it solves a real business problem faster and more accurately.</p>
+  <div class="tools-grid">
+    <div class="tool-card"><span class="tool-icon">🐍</span><div class="tool-name">Python</div></div>
+    <div class="tool-card"><span class="tool-icon">🗄️</span><div class="tool-name">SQL / BigQuery</div></div>
+    <div class="tool-card"><span class="tool-icon">📊</span><div class="tool-name">Tableau</div></div>
+    <div class="tool-card"><span class="tool-icon">📈</span><div class="tool-name">Power BI</div></div>
+    <div class="tool-card"><span class="tool-icon">🤖</span><div class="tool-name">Scikit-learn</div></div>
+    <div class="tool-card"><span class="tool-icon">⚡</span><div class="tool-name">XGBoost</div></div>
+    <div class="tool-card"><span class="tool-icon">🧠</span><div class="tool-name">PyTorch</div></div>
+    <div class="tool-card"><span class="tool-icon">🔥</span><div class="tool-name">TensorFlow</div></div>
+    <div class="tool-card"><span class="tool-icon">📝</span><div class="tool-name">spaCy / NLP</div></div>
+    <div class="tool-card"><span class="tool-icon">🔄</span><div class="tool-name">Airflow</div></div>
+    <div class="tool-card"><span class="tool-icon">📦</span><div class="tool-name">MLflow</div></div>
+    <div class="tool-card"><span class="tool-icon">☁️</span><div class="tool-name">AWS / GCP</div></div>
+    <div class="tool-card"><span class="tool-icon">🛢️</span><div class="tool-name">Salesforce CRM</div></div>
+    <div class="tool-card"><span class="tool-icon">🐙</span><div class="tool-name">Git / GitHub</div></div>
+    <div class="tool-card"><span class="tool-icon">📓</span><div class="tool-name">Jupyter</div></div>
+    <div class="tool-card"><span class="tool-icon">🔢</span><div class="tool-name">Excel / DAX</div></div>
+  </div>
+</section>
+
+<div class="h-divider"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-tag">Let's Talk</div>
+  <h2 class="section-title">Open to Opportunities</h2>
+  <p class="section-sub">Looking for roles where business experience and data science intersect.</p>
+  <div class="contact-grid">
+    <div>
+      <div class="contact-available"><div class="dot"></div>Available for full-time & consulting roles</div>
+      <div class="contact-text">
+        <p>I'm looking for Data Analyst or Data Scientist roles where my SaaS sales background is an asset, not a footnote. The ideal role sits at the intersection of revenue intelligence, ML engineering, and business strategy.</p>
+        <p>Based in <strong style="color:var(--amber);font-style:italic;font-weight:normal">Ahmedabad, India</strong> — open to remote, hybrid, or relocation.</p>
+      </div>
+      <div class="contact-links">
+        <a href="https://linkedin.com/in/yourprofile" class="contact-link">💼 LinkedIn — Connect with me</a>
+        <a href="https://github.com/yourusername" class="contact-link">💻 GitHub — See my code</a>
+        <a href="mailto:yourname@email.com" class="contact-link">✉️ yourname@email.com</a>
+      </div>
+    </div>
+    <div>
+      <div class="contact-form">
+        <div class="form-group"><label class="form-label">Your Name</label><input type="text" class="form-input" placeholder="Jane Smith"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" placeholder="jane@company.com"></div>
+        <div class="form-group"><label class="form-label">Message</label><textarea class="form-input" placeholder="Tell me about the role or project..."></textarea></div>
+        <button class="form-submit">Send Message →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Built with data, curiosity, and no templates.</div>
+  <div style="display:flex;gap:1.5rem">
+    <a href="#about" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">About</a>
+    <a href="#projects" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">Projects</a>
+    <a href="#contact" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">Contact</a>
+  </div>
+</footer>
+</body>
+</html>

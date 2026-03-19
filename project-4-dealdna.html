@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal DNA Fingerprinting Engine — Project 04</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,184,0.05) 0%,transparent 70%);pointer-events:none}
+.dashboard{padding:3rem 5vw}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;border-top:2px solid var(--ds)}
+.kpi-label{font-family:var(--font-mono);font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+.kpi-val{font-family:var(--font-serif);font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:0.25rem}
+.kpi-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.charts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+
+/* Deal cards */
+.deal-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.deal-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;position:relative;cursor:pointer;transition:all 0.2s}
+.deal-card:hover{border-color:var(--border-s);transform:translateY(-2px)}
+.deal-card.selected{border-color:var(--cyan);background:rgba(0,212,184,0.04)}
+.deal-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.deal-name{font-family:var(--font-head);font-size:0.9rem;font-weight:700;color:var(--text)}
+.deal-acv{font-family:var(--font-mono);font-size:0.75rem;color:var(--muted)}
+.dna-score{display:flex;flex-direction:column;align-items:flex-end}
+.dna-score-num{font-family:var(--font-serif);font-size:2rem;line-height:1}
+.dna-score-label{font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
+.dna-signals{display:flex;flex-direction:column;gap:0.5rem}
+.signal-row{display:flex;align-items:center;gap:0.75rem}
+.signal-name{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);width:130px;flex-shrink:0}
+.signal-bar-bg{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.signal-bar-fill{height:100%;border-radius:3px;transition:width 0.8s ease}
+.signal-val{font-family:var(--font-mono);font-size:0.68rem;min-width:28px;text-align:right}
+.signal-arrow{font-size:0.65rem;width:12px}
+.signal-arrow.up{color:var(--cyan)}.signal-arrow.down{color:#e85d4a}.signal-arrow.flat{color:var(--muted)}
+
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-2,.charts-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><a class="nav-logo" href="index.html"><span>◆</span> YourName</a><a href="index.html" class="nav-back">← Back to Portfolio</a></nav>
+
+<div class="proj-hero">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    <span class="badge badge-ds">Data Scientist · Project 04</span>
+    <div class="proj-tags"><span class="tag">XGBoost</span><span class="tag">SHAP Values</span><span class="tag">Feature Engineering</span><span class="tag">Real-time Scoring</span></div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem">Deal DNA<br>Fingerprinting Engine</h1>
+  <p style="font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem">Standard opportunity scoring uses firmographics. This model goes deeper — extracting 40+ temporal behavioral signals to create a unique Deal DNA Fingerprint for every open opportunity, scored in real time against the patterns of historically won deals.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="https://github.com/yourusername/deal-dna-engine" class="btn btn-cyan">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div><div style="font-family:var(--font-head);font-size:1rem;font-weight:700">Deal DNA Live Scoring Dashboard</div><div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem">XGBoost model · AUC 0.89 · Trained on 2,400 historical deals · 40 features</div></div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Stage:</span>
+      <select id="stage-sel" onchange="filterDeals()">
+        <option value="all">All Stages</option><option value="demo">Post-Demo</option><option value="prop">Proposal Sent</option><option value="neg">Negotiation</option>
+      </select>
+      <span class="filter-label">Sort:</span>
+      <select id="sort-sel" onchange="filterDeals()">
+        <option value="score">DNA Score</option><option value="risk">Risk Level</option><option value="acv">ACV</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Model AUC-ROC</div><div class="kpi-val">0.89</div><div class="kpi-sub">vs 0.61 for CRM score</div></div>
+    <div class="kpi"><div class="kpi-label">Avg DNA Score — Won</div><div class="kpi-val">74.2</div><div class="kpi-sub">Benchmark: won deals</div></div>
+    <div class="kpi"><div class="kpi-label">Avg DNA Score — Lost</div><div class="kpi-val">31.8</div><div class="kpi-sub">Benchmark: lost deals</div></div>
+    <div class="kpi"><div class="kpi-label">Top Feature</div><div class="kpi-val">EC Speed</div><div class="kpi-sub">Days to exec engagement</div></div>
+  </div>
+
+  <!-- Live Deal Cards -->
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">Open Pipeline — Deal DNA Scores</div>
+    <div class="chart-sub">Click any deal to see its full behavioral fingerprint below</div>
+    <div class="deal-cards" id="deal-cards" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- Selected deal detail -->
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title" id="radar-title">Deal DNA Fingerprint — Acme Corp</div>
+      <div class="chart-sub">Behavioural profile vs winning deal benchmark</div>
+      <canvas id="chart-radar" height="260"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Top Feature Importance (SHAP Values)</div>
+      <div class="chart-sub">Which signals most influence win probability predictions</div>
+      <canvas id="chart-shap" height="260"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title">Score Distribution — Won vs Lost Historical</div>
+      <div class="chart-sub">Separation between won and lost deal DNA scores</div>
+      <canvas id="chart-dist" height="200"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Signal Trajectory — Engagement Health Over Time</div>
+      <div class="chart-sub" id="traj-sub">Champion engagement score vs days in pipeline</div>
+      <canvas id="chart-traj" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">40+ behavioral features are engineered from raw CRM activity logs: days between stages, email response latency percentiles, meeting-to-demo ratio, champion engagement velocity, stakeholder count growth, and 35 more.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">XGBoost is trained on historical won/lost deals. SHAP values explain each prediction — so a rep knows not just <em>that</em> a deal is at risk, but <em>why</em>: "champion engagement dropped 40% in the last 7 days."</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem">Scores update daily using a lightweight inference pipeline triggered by CRM activity webhooks — giving every rep a live health check on every open deal.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Model</div><div style="font-size:0.82rem;color:var(--muted)">XGBoost classifier with 40 engineered features. Trained on 2,400 closed deals (balanced). AUC-ROC 0.89 on holdout set.</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Explainability</div><div style="font-size:0.82rem;color:var(--muted)">SHAP TreeExplainer produces per-deal feature contributions — showing each rep exactly which behavioral signals are helping or hurting their deal.</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--ds);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Novel Contribution</div><div style="font-size:0.82rem;color:var(--muted)">Using temporal behavioral signal trajectories (not snapshots) as features — treating a deal's engagement health as a time series, not a static record.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 04 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="project-3-gtm.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Prev</a>
+    <a href="project-5-weather.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--cyan)">Next →</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono',monospace";Chart.defaults.font.size=11;
+function base(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+const deals=[
+  {name:'Acme Corp',acv:'$84K',stage:'Negotiation',score:81,risk:'low',signals:{ec_speed:88,response:76,stakeholders:92,engagement:84,stage_vel:71,sentiment:79}},
+  {name:'TechFlow Ltd',acv:'$46K',stage:'Proposal Sent',score:58,risk:'medium',signals:{ec_speed:52,response:61,stakeholders:48,engagement:55,stage_vel:62,sentiment:66}},
+  {name:'DataVault Inc',acv:'$122K',stage:'Post-Demo',score:34,risk:'high',signals:{ec_speed:28,response:44,stakeholders:31,engagement:22,stage_vel:48,sentiment:40}},
+  {name:'Nexus Cloud',acv:'$37K',stage:'Proposal Sent',score:72,risk:'low',signals:{ec_speed:74,response:82,stakeholders:68,engagement:77,stage_vel:65,sentiment:70}},
+  {name:'Orbital SaaS',acv:'$61K',stage:'Post-Demo',score:45,risk:'medium',signals:{ec_speed:41,response:52,stakeholders:44,engagement:38,stage_vel:57,sentiment:49}},
+  {name:'Stratum AI',acv:'$194K',stage:'Negotiation',score:67,risk:'medium',signals:{ec_speed:70,response:64,stakeholders:88,engagement:58,stage_vel:54,sentiment:62}},
+];
+
+let radarChart=null,trajChart=null;
+
+function scoreColor(s){return s>=70?CYAN:s>=50?AMBER:'#e85d4a'}
+
+function renderCards(list){
+  document.getElementById('deal-cards').innerHTML=list.map((d,i)=>`
+    <div class="deal-card" id="dc-${i}" onclick="selectDeal(${i})">
+      <div class="deal-card-header">
+        <div><div class="deal-name">${d.name}</div><div class="deal-acv">${d.acv} · ${d.stage}</div></div>
+        <div class="dna-score"><div class="dna-score-num" style="color:${scoreColor(d.score)}">${d.score}</div><div class="dna-score-label">DNA Score</div></div>
+      </div>
+      <div class="dna-signals">
+        ${Object.entries(d.signals).slice(0,4).map(([k,v])=>`
+          <div class="signal-row">
+            <div class="signal-name">${k.replace(/_/g,' ')}</div>
+            <div class="signal-bar-bg"><div class="signal-bar-fill" style="width:${v}%;background:${scoreColor(v)}"></div></div>
+            <div class="signal-val" style="color:${scoreColor(v)}">${v}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:0.85rem;padding-top:0.85rem;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--muted)">Risk Level</span>
+        <span style="font-family:var(--font-head);font-size:0.7rem;font-weight:700;color:${d.risk==='low'?CYAN:d.risk==='medium'?AMBER:'#e85d4a'}">${d.risk.toUpperCase()}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectDeal(i){
+  document.querySelectorAll('.deal-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('dc-'+i)?.classList.add('selected');
+  const d=deals[i];
+  document.getElementById('radar-title').textContent='Deal DNA Fingerprint — '+d.name;
+  const labels=['EC Speed','Response Rate','Stakeholders','Engagement','Stage Velocity','Sentiment'];
+  const benchmark=[82,78,85,80,75,77];
+  const vals=Object.values(d.signals);
+  if(radarChart)radarChart.destroy();
+  radarChart=new Chart(document.getElementById('chart-radar').getContext('2d'),{type:'radar',data:{labels,datasets:[
+    {label:'This Deal',data:vals,borderColor:scoreColor(d.score),backgroundColor:scoreColor(d.score).replace(')',',0.1)').replace('#','rgba(').replace(/([0-9a-f]{2})/gi,h=>parseInt(h,16)+',').slice(0,-1)+'0.1)',pointBackgroundColor:scoreColor(d.score),borderWidth:2},
+    {label:'Won Deal Benchmark',data:benchmark,borderColor:'rgba(255,255,255,0.3)',backgroundColor:'rgba(255,255,255,0.04)',pointBackgroundColor:'rgba(255,255,255,0.3)',borderWidth:1,borderDash:[4,4]}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120'}},scales:{r:{grid:{color:MUTED},pointLabels:{color:TEXT,font:{size:10}},ticks:{color:TEXT,font:{size:9},stepSize:20},min:0,max:100}}}});
+
+  // Trajectory
+  if(trajChart)trajChart.destroy();
+  const days=Array.from({length:14},(_,k)=>'Day '+(k*3+1));
+  const base_eng=d.signals.engagement;
+  const traj=days.map((_,k)=>Math.max(5,base_eng+Math.sin(k*0.8)*10+(k<7?k*1.5:-k*2)));
+  trajChart=new Chart(document.getElementById('chart-traj').getContext('2d'),{type:'line',data:{labels:days,datasets:[{label:'Engagement Score',data:traj,borderColor:scoreColor(d.score),backgroundColor:scoreColor(d.score)+'22',fill:true,tension:0.4,pointRadius:3}]},options:{...base(),plugins:{legend:{display:false}}}});
+  document.getElementById('traj-sub').textContent='Champion engagement trajectory — '+d.name;
+}
+
+function filterDeals(){
+  const stage=document.getElementById('stage-sel').value;
+  const sort=document.getElementById('sort-sel').value;
+  let list=[...deals];
+  if(stage==='demo')list=list.filter(d=>d.stage.includes('Demo'));
+  else if(stage==='prop')list=list.filter(d=>d.stage.includes('Proposal'));
+  else if(stage==='neg')list=list.filter(d=>d.stage.includes('Negotiation'));
+  if(sort==='score')list.sort((a,b)=>b.score-a.score);
+  else if(sort==='risk')list.sort((a,b)=>['high','medium','low'].indexOf(a.risk)-['high','medium','low'].indexOf(b.risk));
+  else if(sort==='acv')list.sort((a,b)=>parseInt(b.acv.replace(/\D/g,''))-parseInt(a.acv.replace(/\D/g,'')));
+  renderCards(list);
+}
+
+window.addEventListener('load',function(){
+  renderCards(deals);
+  selectDeal(0);
+
+  // SHAP
+  new Chart(document.getElementById('chart-shap').getContext('2d'),{type:'bar',data:{labels:['Days-to-EC-Engage','Stakeholder Count','Champion Response Rate','Stage 3→4 Speed','Email Sentiment Trend','Multi-thread Score','Demo Re-request','Legal Intro Timing'],datasets:[{label:'SHAP Value',data:[0.31,0.24,0.21,0.18,0.14,0.12,0.09,0.07],backgroundColor:function(ctx){const v=ctx.raw;return v>0.2?CYAN:v>0.15?AMBER:'rgba(150,100,220,0.7)'},borderRadius:3}]},options:{...base(),indexAxis:'y',plugins:{legend:{display:false}},scales:{y:{...base().scales.y},x:{...base().scales.x,min:0,max:0.35}}}});
+
+  // Distribution
+  new Chart(document.getElementById('chart-dist').getContext('2d'),{type:'bar',data:{labels:['0-10','10-20','20-30','30-40','40-50','50-60','60-70','70-80','80-90','90-100'],datasets:[
+    {label:'Won Deals',data:[1,2,3,5,8,14,22,28,26,18],backgroundColor:'rgba(0,212,184,0.6)',borderRadius:2},
+    {label:'Lost Deals',data:[8,18,26,24,14,8,4,2,1,1],backgroundColor:'rgba(232,93,74,0.5)',borderRadius:2}
+  ]},options:{...base()}});
+});
+</script>
+</body>
+</html>

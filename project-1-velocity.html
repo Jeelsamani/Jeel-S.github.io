@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Velocity Autopsy System — Project 01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;position:relative;overflow:hidden;border-bottom:1px solid var(--border)}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,0.05) 0%,transparent 70%);pointer-events:none}
+.proj-meta{display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+.proj-hero-title{font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem}
+.proj-hero-desc{font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem}
+.proj-hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+.dashboard{padding:3rem 5vw}
+.dash-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:2rem}
+.dash-title{font-family:var(--font-head);font-size:1rem;font-weight:700;color:var(--text)}
+.dash-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.up::before{background:#00d4b8}.kpi.down::before{background:#f0a500}.kpi.warn::before{background:#e85d4a}
+.kpi-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.6rem}
+.kpi-val{font-family:var(--font-serif);font-size:2rem;color:var(--text);line-height:1;margin-bottom:0.3rem}
+.kpi-change{font-family:var(--font-mono);font-size:0.72rem}
+.kpi-change.pos{color:#00d4b8}.kpi-change.neg{color:#e85d4a}
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.decomp-table-wrap{margin-bottom:1.5rem}
+.impact-bar{display:flex;align-items:center;gap:0.75rem}
+.impact-track{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.impact-fill{height:100%;border-radius:4px}
+.impact-val{font-family:var(--font-mono);font-size:0.72rem;min-width:60px;text-align:right}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-grid{grid-template-columns:1fr}.charts-grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html"><span>◆</span> YourName</a>
+  <a href="index.html" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<div class="proj-hero">
+  <div class="proj-meta">
+    <span class="badge badge-da">Data Analyst · Project 01</span>
+    <div class="proj-tags"><span class="tag">Python</span><span class="tag">SQL</span><span class="tag">Tableau</span><span class="tag">Statistical Decomposition</span><span class="tag">Cohort Analysis</span></div>
+  </div>
+  <h1 class="proj-hero-title">Sales Velocity<br>Autopsy System</h1>
+  <p class="proj-hero-desc">The Sales Velocity formula (Deals × Win Rate × ACV ÷ Sales Cycle) is well known — but no one has broken it into micro-components to track which specific variable is bleeding revenue per rep, per segment, and per time period simultaneously. This dashboard does exactly that.</p>
+  <div class="proj-hero-btns">
+    <a href="https://github.com/yourusername/sales-velocity-autopsy" class="btn btn-amber">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="dash-header">
+    <div><div class="dash-title">Revenue Velocity Decomposition Dashboard</div><div class="dash-sub">Synthetic SaaS dataset · 847 deals · Q1–Q4 2024</div></div>
+    <div class="filter-bar" style="margin-bottom:0">
+      <span class="filter-label">Segment:</span>
+      <select id="seg-filter" onchange="updateCharts()">
+        <option value="all">All Segments</option>
+        <option value="smb">SMB</option>
+        <option value="mid">Mid-Market</option>
+        <option value="ent">Enterprise</option>
+      </select>
+      <span class="filter-label">Period:</span>
+      <select id="period-filter" onchange="updateCharts()">
+        <option value="all">Full Year</option>
+        <option value="h1">H1 2024</option>
+        <option value="h2">H2 2024</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi up"><div class="kpi-label">Sales Velocity</div><div class="kpi-val" id="kpi-vel">$18,420</div><div class="kpi-change pos" id="kpi-vel-c">↑ 12.4% vs prev period</div></div>
+    <div class="kpi down"><div class="kpi-label">Win Rate</div><div class="kpi-val" id="kpi-wr">28.3%</div><div class="kpi-change neg" id="kpi-wr-c">↓ 3.1% vs prev period</div></div>
+    <div class="kpi up"><div class="kpi-label">Avg Deal Size (ACV)</div><div class="kpi-val" id="kpi-acv">$42,100</div><div class="kpi-change pos" id="kpi-acv-c">↑ 8.7% vs prev period</div></div>
+    <div class="kpi warn"><div class="kpi-label">Avg Sales Cycle</div><div class="kpi-val" id="kpi-sc">87 days</div><div class="kpi-change neg" id="kpi-sc-c">↑ 11 days vs prev period</div></div>
+  </div>
+
+  <!-- Charts row 1 -->
+  <div class="charts-grid">
+    <div class="chart-wrap">
+      <div class="chart-title">Velocity Component Contribution by Quarter</div>
+      <div class="chart-sub">Which factor drove or hurt velocity each quarter</div>
+      <canvas id="chart-velocity" height="200"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Revenue Bleed by Component</div>
+      <div class="chart-sub">Dollar impact of each velocity failure</div>
+      <canvas id="chart-bleed" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts row 2 -->
+  <div class="charts-grid-3">
+    <div class="chart-wrap">
+      <div class="chart-title">Win Rate by Rep Archetype</div>
+      <div class="chart-sub">Challenger · Relationship · Consultant · Lone Wolf</div>
+      <canvas id="chart-rep" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Stage-Level Dropout Rate</div>
+      <div class="chart-sub">Where deals are dying in the funnel</div>
+      <canvas id="chart-stage" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Sales Cycle by Deal Size</div>
+      <div class="chart-sub">Avg days to close vs ACV band</div>
+      <canvas id="chart-cycle" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Decomposition table -->
+  <div class="decomp-table-wrap chart-wrap">
+    <div class="chart-title">Micro-Failure Decomposition Table</div>
+    <div class="chart-sub">Root cause analysis: which variable caused what dollar loss</div>
+    <table class="data-table" style="margin-top:1rem">
+      <thead>
+        <tr>
+          <th>Velocity Driver</th>
+          <th>Segment</th>
+          <th>Current Value</th>
+          <th>Benchmark</th>
+          <th>Gap</th>
+          <th>Revenue Impact</th>
+          <th>Impact Severity</th>
+        </tr>
+      </thead>
+      <tbody id="decomp-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">The core formula <code style="background:var(--bg3);padding:0.2rem 0.5rem;border-radius:3px;font-family:var(--font-mono);font-size:0.8rem">V = (N × W × ACV) / C</code> is decomposed using partial derivatives — isolating the marginal contribution of each variable to total velocity change.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">Each component is then segmented by rep archetype (Challenger, Relationship Builder, Consultant, Lone Wolf), deal size band, and industry vertical to find which exact combination is underperforming.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem">The result: instead of "win rate dropped 3%," the system tells you <em style="color:var(--amber)">exactly which rep type, selling which deal size, in which stage, lost which dollar amount.</em></p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem">
+        <div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:0.3rem">Dataset</div>
+        <div style="font-size:0.82rem;color:var(--muted)">847 synthetic SaaS deals across 4 segments, 5 verticals, and 12 reps — generated with realistic distributions from industry benchmarks.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem">
+        <div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:0.3rem">Decomposition Method</div>
+        <div style="font-size:0.82rem;color:var(--muted)">Variance decomposition using Shapley values — the same method used in game theory to fairly attribute group outcomes to individual contributors.</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem">
+        <div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:0.3rem">Output</div>
+        <div style="font-size:0.82rem;color:var(--muted)">A ranked micro-failure table showing which velocity component caused which dollar loss — ready to hand to a VP of Sales for immediate action.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 01 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="index.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Portfolio</a>
+    <a href="project-2-pricing.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--amber)">Next Project →</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono', monospace";Chart.defaults.font.size=11;
+
+const data={
+  all:{vel:18420,wr:28.3,acv:42100,sc:87,vel_c:'+12.4%',wr_c:'-3.1%',acv_c:'+8.7%',sc_c:'+11 days'},
+  smb:{vel:9200,wr:35.1,acv:18500,sc:42,vel_c:'+4.2%',wr_c:'+1.2%',acv_c:'+2.1%',sc_c:'-3 days'},
+  mid:{vel:21000,wr:27.8,acv:46000,sc:78,vel_c:'+9.1%',wr_c:'-2.4%',acv_c:'+7.3%',sc_c:'+7 days'},
+  ent:{vel:48000,wr:18.2,acv:124000,sc:167,vel_c:'+18.3%',wr_c:'-6.2%',acv_c:'+14.1%',sc_c:'+24 days'}
+};
+
+const quarters=['Q1 2024','Q2 2024','Q3 2024','Q4 2024'];
+let charts={};
+
+function mkChartBase(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:10,padding:12,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleFont:{family:"'Syne'",size:12},bodyFont:{family:"'DM Mono'",size:11}}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+function initCharts(){
+  // Velocity Components Bar
+  const c1=document.getElementById('chart-velocity').getContext('2d');
+  charts.vel=new Chart(c1,{type:'bar',data:{labels:quarters,datasets:[
+    {label:'Deal Volume Impact',data:[4200,5100,3800,6100],backgroundColor:'rgba(240,165,0,0.7)',borderRadius:3},
+    {label:'Win Rate Impact',data:[-1200,-800,-2100,-600],backgroundColor:'rgba(232,93,74,0.7)',borderRadius:3},
+    {label:'ACV Impact',data:[2100,3400,1800,4200],backgroundColor:'rgba(0,212,184,0.7)',borderRadius:3},
+    {label:'Cycle Time Impact',data:[-800,-400,-1600,-300],backgroundColor:'rgba(150,100,220,0.6)',borderRadius:3}
+  ]},options:{...mkChartBase(),plugins:{...mkChartBase().plugins,tooltip:{...mkChartBase().plugins.tooltip,callbacks:{label:function(c){return c.dataset.label+': $'+Math.abs(c.raw).toLocaleString()+(c.raw<0?' (loss)':' (gain)')}}}}}}});
+
+  // Bleed Doughnut
+  const c2=document.getElementById('chart-bleed').getContext('2d');
+  charts.bleed=new Chart(c2,{type:'doughnut',data:{labels:['Win Rate Bleed','Cycle Inflation','Volume Drop','ACV Erosion'],datasets:[{data:[38400,22100,14800,8200],backgroundColor:['rgba(232,93,74,0.8)','rgba(240,165,0,0.8)','rgba(150,100,220,0.7)','rgba(100,150,220,0.7)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'65%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:10,color:TEXT}},tooltip:{callbacks:{label:function(c){return c.label+': $'+c.raw.toLocaleString()+' lost'}}},backgroundColor:'#0d1120'}}});
+
+  // Rep archetype
+  const c3=document.getElementById('chart-rep').getContext('2d');
+  charts.rep=new Chart(c3,{type:'bar',data:{labels:['Challenger','Relationship','Consultant','Lone Wolf'],datasets:[{label:'Win Rate %',data:[34.2,22.1,29.8,18.4],backgroundColor:[CYAN,'rgba(240,165,0,0.7)','rgba(150,200,100,0.7)','rgba(232,93,74,0.7)'],borderRadius:4}]},options:{...mkChartBase(),indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw+'% win rate'}}}}}});
+
+  // Stage dropout
+  const c4=document.getElementById('chart-stage').getContext('2d');
+  charts.stage=new Chart(c4,{type:'bar',data:{labels:['Prospect','Qualify','Demo','Proposal','Negotiate','Close'],datasets:[{label:'Drop Rate %',data:[8,12,24,31,18,7],backgroundColor:function(ctx){const v=ctx.raw;return v>25?'rgba(232,93,74,0.8)':v>15?'rgba(240,165,0,0.7)':'rgba(0,212,184,0.6)'},borderRadius:3}]},options:{...mkChartBase(),plugins:{legend:{display:false}}}});
+
+  // Sales cycle scatter
+  const c5=document.getElementById('chart-cycle').getContext('2d');
+  charts.cycle=new Chart(c5,{type:'bar',data:{labels:['<$10K','$10–25K','$25–50K','$50–100K','>$100K'],datasets:[{label:'Avg Days',data:[28,45,72,118,192],backgroundColor:'rgba(240,165,0,0.15)',borderColor:AMBER,borderWidth:2,borderRadius:3}]},options:{...mkChartBase(),plugins:{legend:{display:false}}}});
+
+  buildDecompTable('all');
+}
+
+const decompData={
+  all:[
+    {driver:'Win Rate — Stage 3→4',seg:'Enterprise',curr:'18.2%',bench:'28%',gap:'-9.8pts',impact:'-$384K',sev:92},
+    {driver:'Sales Cycle Inflation',seg:'Enterprise',curr:'167 days',bench:'120 days',gap:'+47 days',impact:'-$221K',sev:78},
+    {driver:'Deal Volume Decline',seg:'Mid-Market',curr:'142 deals',bench:'180 deals',gap:'-38 deals',impact:'-$148K',sev:61},
+    {driver:'ACV Erosion (discounting)',seg:'SMB',curr:'$17.2K',bench:'$21K',gap:'-$3.8K',impact:'-$82K',sev:44},
+    {driver:'Win Rate — Lone Wolf Reps',seg:'All',curr:'18.4%',bench:'31%',gap:'-12.6pts',impact:'-$64K',sev:38},
+  ],
+  smb:[
+    {driver:'ACV Erosion',seg:'SMB',curr:'$17.2K',bench:'$21K',gap:'-$3.8K',impact:'-$82K',sev:82},
+    {driver:'High Volume Dropout Q2',seg:'SMB',curr:'210 deals',bench:'260 deals',gap:'-50 deals',impact:'-$44K',sev:51},
+  ],
+  mid:[
+    {driver:'Sales Cycle Q3 Spike',seg:'Mid-Market',curr:'91 days',bench:'72 days',gap:'+19 days',impact:'-$118K',sev:74},
+    {driver:'Win Rate — Demo Stage',seg:'Mid-Market',curr:'22.1%',bench:'31%',gap:'-8.9pts',impact:'-$94K',sev:68},
+  ],
+  ent:[
+    {driver:'Win Rate — Stage 3→4',seg:'Enterprise',curr:'18.2%',bench:'28%',gap:'-9.8pts',impact:'-$384K',sev:92},
+    {driver:'Sales Cycle Inflation',seg:'Enterprise',curr:'167 days',bench:'120 days',gap:'+47 days',impact:'-$221K',sev:78},
+    {driver:'Stalled Negotiations',seg:'Enterprise',curr:'38 deals',bench:'20 stalled',gap:'+18 stalled',impact:'-$156K',sev:65},
+  ]
+};
+
+function buildDecompTable(seg){
+  const rows=decompData[seg]||decompData.all;
+  const tbody=document.getElementById('decomp-tbody');
+  tbody.innerHTML=rows.map(r=>`<tr>
+    <td style="color:var(--text);font-weight:500">${r.driver}</td>
+    <td><span class="badge badge-da" style="font-size:0.62rem">${r.seg}</span></td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem">${r.curr}</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem;color:var(--muted)">${r.bench}</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem;color:#e85d4a">${r.gap}</td>
+    <td style="font-family:var(--font-mono);font-size:0.8rem;color:#e85d4a;font-weight:600">${r.impact}</td>
+    <td><div class="impact-bar"><div class="impact-track"><div class="impact-fill" style="width:${r.sev}%;background:${r.sev>75?'#e85d4a':r.sev>50?AMBER:CYAN}"></div></div><span class="impact-val" style="color:${r.sev>75?'#e85d4a':r.sev>50?AMBER:CYAN}">${r.sev}</span></div></td>
+  </tr>`).join('');
+}
+
+function updateCharts(){
+  const seg=document.getElementById('seg-filter').value;
+  const d=data[seg]||data.all;
+  document.getElementById('kpi-vel').textContent='$'+d.vel.toLocaleString();
+  document.getElementById('kpi-wr').textContent=d.wr+'%';
+  document.getElementById('kpi-acv').textContent='$'+d.acv.toLocaleString();
+  document.getElementById('kpi-sc').textContent=d.sc+' days';
+  document.getElementById('kpi-vel-c').textContent=(d.vel_c.startsWith('+')?'↑ ':'↓ ')+d.vel_c.slice(1)+' vs prev';
+  document.getElementById('kpi-wr-c').textContent=(d.wr_c.startsWith('+')?'↑ ':'↓ ')+d.wr_c.slice(1)+' vs prev';
+  document.getElementById('kpi-acv-c').textContent=(d.acv_c.startsWith('+')?'↑ ':'↓ ')+d.acv_c.slice(1)+' vs prev';
+  document.getElementById('kpi-sc-c').textContent=(d.sc_c.startsWith('+')?'↑ ':'↓ ')+d.sc_c.slice(1)+' vs prev';
+  buildDecompTable(seg);
+}
+
+window.addEventListener('load',initCharts);
+</script>
+</body>
+</html>

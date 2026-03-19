@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lost Deal Pricing Signal Intelligence — Project 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+.proj-hero{padding:9rem 5vw 4rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.proj-hero::before{content:'';position:absolute;top:-100px;right:0;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,0.05) 0%,transparent 70%);pointer-events:none}
+.dashboard{padding:3rem 5vw}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;border-top:2px solid var(--da)}
+.kpi-label{font-family:var(--font-mono);font-size:0.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem}
+.kpi-val{font-family:var(--font-serif);font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:0.25rem}
+.kpi-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.charts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.nlp-chips{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem}
+.nlp-chip{font-family:var(--font-mono);font-size:0.72rem;padding:0.3rem 0.75rem;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.nlp-chip.active,.nlp-chip:hover{border-color:var(--da);color:var(--da);background:var(--amber-dim)}
+.quote-card{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem;margin-bottom:0.75rem}
+.quote-text{font-size:0.88rem;color:rgba(232,230,224,0.75);font-style:italic;line-height:1.65;margin-bottom:0.5rem}
+.quote-meta{display:flex;gap:1rem;flex-wrap:wrap}
+.quote-tag{font-family:var(--font-mono);font-size:0.65rem;color:var(--muted)}
+.quote-tag span{color:var(--da)}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.charts-2,.charts-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html"><span>◆</span> YourName</a>
+  <a href="index.html" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<div class="proj-hero">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    <span class="badge badge-da">Data Analyst · Project 02</span>
+    <div class="proj-tags"><span class="tag">NLP / spaCy</span><span class="tag">Price Elasticity</span><span class="tag">CRM Mining</span><span class="tag">Regression</span></div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:clamp(2.5rem,5vw,4rem);line-height:1.1;margin-bottom:1rem">Lost Deal Pricing<br>Signal Intelligence</h1>
+  <p style="font-size:1rem;color:rgba(232,230,224,0.65);max-width:640px;line-height:1.8;margin-bottom:2rem">Companies spend millions on A/B pricing tests while sitting on a goldmine of pricing signal in their lost deals. This project reverse-engineers price elasticity using NLP on CRM notes, close reasons, and discount patterns — revealing what price <em>actually</em> kills deals.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap">
+    <a href="https://github.com/yourusername/pricing-signal-intelligence" class="btn btn-amber">View Code on GitHub</a>
+    <a href="#dashboard" class="btn btn-outline">Explore Dashboard ↓</a>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div><div style="font-family:var(--font-head);font-size:1rem;font-weight:700">Pricing Intelligence Dashboard</div><div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);margin-top:0.2rem">1,243 lost deals analysed · NLP on 4,800+ CRM notes</div></div>
+    <div class="filter-bar" style="margin:0">
+      <span class="filter-label">Segment:</span>
+      <select id="seg-sel" onchange="filterData()">
+        <option value="all">All</option><option value="smb">SMB</option><option value="mid">Mid-Market</option><option value="ent">Enterprise</option>
+      </select>
+      <span class="filter-label">Industry:</span>
+      <select id="ind-sel" onchange="filterData()">
+        <option value="all">All</option><option value="fin">Fintech</option><option value="hr">HR Tech</option><option value="mkt">MarTech</option><option value="ops">Ops / Infra</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Deals Lost on Price</div><div class="kpi-val" id="kpi-pct">41%</div><div class="kpi-sub">of all lost deals</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Revenue Left Behind</div><div class="kpi-val" id="kpi-rev">$2.1M</div><div class="kpi-sub">annually from price objections</div></div>
+    <div class="kpi"><div class="kpi-label">Price Kill Zone</div><div class="kpi-val" id="kpi-kill">+22%</div><div class="kpi-sub">above $38K ACV for SMB</div></div>
+    <div class="kpi"><div class="kpi-label">Optimal Discount Ceiling</div><div class="kpi-val" id="kpi-disc">14%</div><div class="kpi-sub">beyond this, win rate plateaus</div></div>
+  </div>
+
+  <div class="charts-2">
+    <div class="chart-wrap">
+      <div class="chart-title">Price Elasticity Curve by Segment</div>
+      <div class="chart-sub">Win rate vs pricing tier — where deals start dying</div>
+      <canvas id="chart-elastic" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Discount Effectiveness Curve</div>
+      <div class="chart-sub">Win rate lift per % discount offered — and where it stops working</div>
+      <canvas id="chart-disc" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="charts-3">
+    <div class="chart-wrap">
+      <div class="chart-title">Top Pricing Objection Themes</div>
+      <div class="chart-sub">Extracted from CRM notes via NLP topic modeling</div>
+      <canvas id="chart-obj" height="230"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Competitor Price Mentions</div>
+      <div class="chart-sub">Which competitors are named in pricing objection notes</div>
+      <canvas id="chart-comp" height="230"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Days-to-Rejection by Price Band</div>
+      <div class="chart-sub">How fast deals die when pricing is the issue</div>
+      <canvas id="chart-days" height="230"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-wrap" style="margin-bottom:1.5rem">
+    <div class="chart-title">NLP-Extracted Pricing Objection Signals</div>
+    <div class="chart-sub">Click a theme to filter actual CRM note extracts below</div>
+    <div class="nlp-chips">
+      <div class="nlp-chip active" onclick="showQuotes('budget')">Budget freeze</div>
+      <div class="nlp-chip" onclick="showQuotes('competitor')">Competitor cheaper</div>
+      <div class="nlp-chip" onclick="showQuotes('roi')">ROI unclear</div>
+      <div class="nlp-chip" onclick="showQuotes('timing')">Bad timing / renewal</div>
+      <div class="nlp-chip" onclick="showQuotes('value')">Value perception gap</div>
+    </div>
+    <div id="quote-panel" style="margin-top:1.5rem"></div>
+  </div>
+</div>
+
+<div class="h-divider"></div>
+<section style="padding:3rem 5vw">
+  <div class="section-tag">Methodology</div>
+  <h2 class="section-title" style="font-size:1.75rem">How It Works</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem">
+    <div>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">The pipeline ingests lost-deal CRM records and applies spaCy NLP to extract pricing-related sentences from notes. Custom entity recognition identifies competitor names, price figures, and objection language.</p>
+      <p style="color:rgba(232,230,224,0.65);font-size:0.95rem;margin-bottom:1rem">Latent Dirichlet Allocation (LDA) clusters objections into 5 thematic buckets. A logistic regression then models win probability as a function of price tier, controlling for segment, deal size, and rep.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Data Sources</div><div style="font-size:0.82rem;color:var(--muted)">CRM lost-deal records, close reason fields, contact notes, call transcript summaries, discount request logs</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">NLP Stack</div><div style="font-size:0.82rem;color:var(--muted)">spaCy for entity extraction, scikit-learn LDA for topic modeling, VADER for sentiment on pricing conversations</div></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--da);border-radius:4px;padding:1rem 1.25rem"><div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;margin-bottom:0.3rem">Output</div><div style="font-size:0.82rem;color:var(--muted)">Pricing kill zones by segment, optimal discount ceiling, and a ranked objection taxonomy the pricing team can act on immediately</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 <span>YourName</span> · Project 02 of 06</div>
+  <div style="display:flex;gap:1.25rem">
+    <a href="project-1-velocity.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)">← Prev</a>
+    <a href="project-3-gtm.html" style="font-family:var(--font-mono);font-size:0.7rem;color:var(--amber)">Next →</a>
+  </div>
+</footer>
+
+<script>
+const AMBER='#f0a500',CYAN='#00d4b8',MUTED='rgba(232,230,224,0.15)',TEXT='rgba(232,230,224,0.75)';
+Chart.defaults.color=TEXT;Chart.defaults.borderColor=MUTED;Chart.defaults.font.family="'DM Mono',monospace";Chart.defaults.font.size=11;
+function base(){return{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,padding:10,color:TEXT}},tooltip:{backgroundColor:'#0d1120',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},scales:{x:{grid:{color:MUTED},ticks:{color:TEXT}},y:{grid:{color:MUTED},ticks:{color:TEXT}}}}}
+
+window.addEventListener('load',function(){
+  // Elasticity
+  const tiers=['<$10K','$10-20K','$20-35K','$35-50K','$50-75K','>$75K'];
+  new Chart(document.getElementById('chart-elastic').getContext('2d'),{type:'line',data:{labels:tiers,datasets:[
+    {label:'SMB',data:[68,62,49,31,18,11],borderColor:CYAN,tension:0.4,pointRadius:4,fill:false},
+    {label:'Mid-Market',data:[71,65,58,46,34,22],borderColor:AMBER,tension:0.4,pointRadius:4,fill:false},
+    {label:'Enterprise',data:[72,69,64,58,51,43],borderColor:'rgba(150,100,220,0.8)',tension:0.4,pointRadius:4,fill:false}
+  ]},options:{...base(),plugins:{...base().plugins},scales:{x:{...base().scales.x},y:{...base().scales.y,min:0,max:100,ticks:{callback:v=>v+'%',color:TEXT}}}}});
+
+  // Discount curve
+  const dpts=[0,5,10,15,20,25,30];
+  new Chart(document.getElementById('chart-disc').getContext('2d'),{type:'line',data:{labels:dpts.map(d=>d+'%'),datasets:[{label:'Win Rate Lift',data:[28,32,36,39,40,40.5,40.8],borderColor:AMBER,backgroundColor:'rgba(240,165,0,0.08)',fill:true,tension:0.4,pointRadius:4}]},options:{...base(),plugins:{...base().plugins,annotation:{}},scales:{x:{...base().scales.x,title:{display:true,text:'Discount Offered',color:TEXT}},y:{...base().scales.y,ticks:{callback:v=>v+'%',color:TEXT}}}}});
+
+  // Objection themes
+  new Chart(document.getElementById('chart-obj').getContext('2d'),{type:'bar',data:{labels:['Budget Freeze','Competitor Cost','ROI Unclear','Bad Timing','Value Gap'],datasets:[{label:'Mentions',data:[387,291,214,176,142],backgroundColor:['rgba(240,165,0,0.8)','rgba(232,93,74,0.75)','rgba(0,212,184,0.7)','rgba(150,100,220,0.7)','rgba(100,180,220,0.7)'],borderRadius:4}]},options:{...base(),indexAxis:'y',plugins:{legend:{display:false}}}});
+
+  // Competitor
+  new Chart(document.getElementById('chart-comp').getContext('2d'),{type:'doughnut',data:{labels:['Competitor A','HubSpot','Competitor C','Salesforce','Other'],datasets:[{data:[34,26,18,14,8],backgroundColor:['rgba(240,165,0,0.8)','rgba(0,212,184,0.75)','rgba(232,93,74,0.7)','rgba(150,100,220,0.7)','rgba(120,120,120,0.5)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:8,color:TEXT}}}}});
+
+  // Days to rejection
+  new Chart(document.getElementById('chart-days').getContext('2d'),{type:'bar',data:{labels:['<$10K','$10-25K','$25-50K','$50-100K','>$100K'],datasets:[{label:'Avg Days',data:[4,8,14,22,38],backgroundColor:'rgba(232,93,74,0.7)',borderRadius:3}]},options:{...base(),plugins:{legend:{display:false}}}});
+
+  showQuotes('budget');
+});
+
+const quotes={
+  budget:[
+    {text:'"Their budget was frozen for the quarter. The champion loved the product but said $42K was way above what they could approve without exec sign-off. We lost to inaction, not a competitor."',seg:'SMB',acv:'$42K',stage:'Proposal',outcome:'No decision'},
+    {text:'"Finance came in late and immediately flagged the annual cost. No conversation about ROI happened — they just saw the number and said it was above their software budget line for the year."',seg:'Mid-Market',acv:'$67K',stage:'Negotiation',outcome:'Lost — budget'},
+  ],
+  competitor:[
+    {text:'"Prospect mentioned Competitor A is offering a similar feature set for 30% less. When we tried to justify the premium, they pushed back saying the extra features were nice-to-have not need-to-have."',seg:'SMB',acv:'$28K',stage:'Demo',outcome:'Lost — competitor'},
+    {text:'"HubSpot came in with a bundled offer that included their CRM at no extra cost. We couldn\'t match that perceived value even with a 20% discount."',seg:'Mid-Market',acv:'$54K',stage:'Proposal',outcome:'Lost — HubSpot'},
+  ],
+  roi:[
+    {text:'"The buyer kept asking for an ROI calculator. We gave numbers but they wanted industry benchmarks for their specific vertical. Without that proof, they couldn\'t get board approval."',seg:'Enterprise',acv:'$120K',stage:'Proposal',outcome:'Stalled'},
+    {text:'"They struggled to quantify the time savings to their team. The economic buyer was sold but the CFO wanted hard numbers. We didn\'t have a good enough case study from their industry."',seg:'Mid-Market',acv:'$48K',stage:'Negotiate',outcome:'Lost — no ROI proof'},
+  ],
+  timing:[
+    {text:'"They\'re 4 months into a 3-year renewal with the current vendor. They liked us more but the switching cost and timing made it impossible this cycle. Good pipeline for next year."',seg:'Enterprise',acv:'$180K',stage:'Discovery',outcome:'Pushed to next year'},
+    {text:'"Company just went through a hiring freeze. The budget was there on paper but procurement put everything non-essential on hold for Q3."',seg:'Mid-Market',acv:'$36K',stage:'Proposal',outcome:'Lost — freeze'},
+  ],
+  value:[
+    {text:'"They kept comparing us to a spreadsheet solution they built internally. The gap in capability was real but hard to communicate without a proper demo environment showing their actual data."',seg:'SMB',acv:'$19K',stage:'Demo',outcome:'Lost — DIY'},
+    {text:'"The end users loved it but the buyer was the CFO who only saw cost. Couldn\'t bridge the gap between feature value and finance-speak fast enough."',seg:'Mid-Market',acv:'$58K',stage:'Proposal',outcome:'Lost — value gap'},
+  ]
+};
+
+function showQuotes(type){
+  document.querySelectorAll('.nlp-chip').forEach(c=>{c.classList.remove('active');if(c.textContent.toLowerCase().includes(type.slice(0,4))||c.onclick.toString().includes("'"+type+"'"))c.classList.add('active')});
+  const panel=document.getElementById('quote-panel');
+  panel.innerHTML=quotes[type].map(q=>`<div class="quote-card"><div class="quote-text">${q.text}</div><div class="quote-meta"><span class="quote-tag">Segment: <span>${q.seg}</span></span><span class="quote-tag">ACV: <span>${q.acv}</span></span><span class="quote-tag">Stage: <span>${q.stage}</span></span><span class="quote-tag" style="color:#e85d4a">→ ${q.outcome}</span></div></div>`).join('');
+}
+
+function filterData(){}
+</script>
+</body>
+</html>
